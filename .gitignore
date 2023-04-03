@@ -1,0 +1,9 @@
+/target
+/Cargo.lock
+/.vscode
+data
+log
+/.venv
+*.pyd
+__pycache__
+qrcode.png

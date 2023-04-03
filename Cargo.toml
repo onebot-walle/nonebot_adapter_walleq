@@ -1,0 +1,22 @@
+[package]
+name = "nonebot-adapter-walleq"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[lib]
+name = "nonebot_adapter_walleq"
+crate-type = ["cdylib"]
+
+[dependencies]
+walle-core = "0.7.*"
+pyo3 = { version = "0.18.*", features = [
+    "extension-module",
+    "abi3",
+    "abi3-py38",
+] }
+pyo3-asyncio = { version = "0.18.*", features = ["tokio-runtime"] }
+tokio = "1.27.*"
+rmp-serde = "1.*"
+walle-q = { git = "https://github.com/onebot-walle/walle-q.git" }

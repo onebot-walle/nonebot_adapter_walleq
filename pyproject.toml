@@ -1,0 +1,11 @@
+[project]
+name = "nonebot-adapter-walleq"
+version = "0.1.0"
+authors = [{ name = "AbrahumLink", email = "307887491@qq.com" }]
+description = "Just run walle-q in nonebot2"
+readme = "README.md"
+dependencies = ["nonebot-adapter-onebot~=2.2.2"]
+
+[build-system]
+build-backend = "maturin"
+requires = ["maturin>=0.14,<0.15"]

@@ -1,0 +1,15 @@
+[project]
+name = "wqtest"
+version = "0.1.0"
+description = "wqtest"
+readme = "README.md"
+requires-python = ">=3.8, <4.0"
+
+[tool.nonebot]
+adapters = [
+    { name = "Walle-Q", module_name = "nonebot_adapter_walleq" },
+    { name = "OneBot V12", module_name = "nonebot.adapters.onebot.v12" }
+]
+plugins = ["nonebot.plugins.echo"]
+plugin_dirs = []
+builtin_plugins = []
