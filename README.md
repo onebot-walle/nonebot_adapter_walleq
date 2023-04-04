@@ -1,7 +1,6 @@
 # nonebot-adapter-walleq
 
-<img alt="PyPI" src="https://img.shields.io/pypi/v/nonebot-adapter-walleq">
-<img alt="GitHub" src="https://img.shields.io/github/license/onebot-walle/nonebot_adapter_walleq">
+<img alt="PyPI" src="https://img.shields.io/pypi/v/nonebot-adapter-walleq"> <img alt="GitHub" src="https://img.shields.io/github/license/onebot-walle/nonebot_adapter_walleq">
 
 直接在你的 [Nonebot2](https://github.com/nonebot/nonebot2) 内置 [Walle-Q](https://github.com/onebot-walle/walle-q) ，他甚至不需要通过 Onebot Connect！
 
