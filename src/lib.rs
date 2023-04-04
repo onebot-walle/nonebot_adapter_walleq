@@ -24,15 +24,23 @@ pub struct WalleQ {
     event_tx: BTx<Vec<u8>>,
 }
 
+
 #[pyo3::pymethods]
 impl WalleQ {
     #[new]
-    fn new() -> Self {
+    fn new(level_db: Option<bool>, sled_db: Option<bool>) -> Self {
         let (action_tx, _) = channel(64);
         let (event_tx, _) = channel(64);
+        let mut databse = WQDatabase::default();
+        if let Some(true) = level_db {
+            databse = databse.add_level();
+        }
+        if let Some(true) = sled_db {
+            databse = databse.add_sled();
+        }
         Self {
             ob: Arc::new(OneBot::new(
-                MultiAH::new(None, 10, Arc::new(WQDatabase::default())), //todo
+                MultiAH::new(None, 10, Arc::new(databse)),
                 PyoHandler {
                     action_tx: action_tx.clone(),
                     event_tx: event_tx.clone(),

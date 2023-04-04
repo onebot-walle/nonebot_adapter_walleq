@@ -1,6 +1,6 @@
 [project]
 name = "nonebot-adapter-walleq"
-version = "0.1.0"
+version = "0.1.1"
 requires-python = ">=3.8"
 authors = [{ name = "AbrahumLink", email = "307887491@qq.com" }]
 description = "Just run walle-q in nonebot2"

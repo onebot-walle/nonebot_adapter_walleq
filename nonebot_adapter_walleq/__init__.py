@@ -5,7 +5,7 @@ from nonebot.adapters.onebot.v12.utils import msgpack_encoder
 from nonebot.typing import overrides
 from nonebot.drivers import Driver
 from nonebot import get_driver
-from typing import Any, Optional, Dict, cast
+from typing import Any, Optional, Dict, cast, Union, Literal
 from nonebot.utils import logger_wrapper, escape_tag
 import msgpack
 import asyncio
@@ -67,14 +67,20 @@ class Adapter(V12Adapter):
     @overrides(V12Adapter)
     def __init__(self, driver: Driver, **kwargs: Any) -> None:
         self.driver = driver
-        self.inner: WalleQ = WalleQ()
-        self.timeout: Optional[float] = driver.config.api_timeout
         self.wq_config = Config(**self.config.dict())
+        self.inner: WalleQ = WalleQ(
+            self.wq_config.walle_q_leveldb, self.wq_config.walle_q_sled
+        )
+        self.timeout: Optional[float] = driver.config.api_timeout
+
         async def run(wq: WalleQ, config: Optional[bytes]):
             await wq.run(config)
+
         @driver.on_startup
         async def _():
-            config: Optional[bytes] = msgpack.dumps(self.wq_config.walle_q, default=msgpack_encoder)
+            config: Optional[bytes] = msgpack.dumps(
+                self.wq_config.walle_q, default=msgpack_encoder
+            )
             asyncio.create_task(run(self.inner, config))
 
     @classmethod
@@ -113,3 +119,5 @@ class QQConfig(BaseModel):
 
 class Config(BaseModel):
     walle_q: Dict[str, QQConfig]
+    walle_q_leveldb: Optional[bool]
+    walle_q_sled: Optional[bool]

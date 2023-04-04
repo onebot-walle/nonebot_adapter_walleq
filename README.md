@@ -6,6 +6,20 @@
 
 由于本适配器直接继承于 Onebot V12 ，所以所有适配 Onebot V12 的插件可以直接适配本适配器！
 
+## 可配置项
+
+- walle_q: Dict 登陆的账号，例子：
+  ``` json
+  {
+    "0": {             //密码登录时必须为 qq 号
+      "protocol": 2,   // watch
+      "password": null // 留空则使用扫码登录
+    }
+  }
+  ```
+- walle_q_leveldb: bool 是否启用 leveldb
+- walle_q_sled： bool 是否启用 sled
+
 ## 特别鸣谢
 
 [Nonebot2](https://github.com/nonebot/nonebot2)：跨平台 PYTHON 异步机器人框架

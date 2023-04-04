@@ -1,6 +1,6 @@
 [package]
 name = "nonebot-adapter-walleq"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
@@ -19,4 +19,4 @@ pyo3 = { version = "0.18.*", features = [
 pyo3-asyncio = { version = "0.18.*", features = ["tokio-runtime"] }
 tokio = "1.27.*"
 rmp-serde = "1.*"
-walle-q = { git = "https://github.com/onebot-walle/walle-q.git" }
+walle-q = { git = "https://github.com/onebot-walle/walle-q.git", features = [] }
