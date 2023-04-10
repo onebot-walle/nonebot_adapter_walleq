@@ -18,7 +18,8 @@
   }
   ```
 - walle_q_leveldb: bool 是否启用 leveldb
-- walle_q_sled： bool 是否启用 sled
+- walle_q_sled：bool 是否启用 sled
+- walle_q_data_path: str 数据存储路径，默认将使用localstore
 
 ## 特别鸣谢
 

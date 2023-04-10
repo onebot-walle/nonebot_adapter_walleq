@@ -8,8 +8,8 @@ requires-python = ">=3.8, <4.0"
 [tool.nonebot]
 adapters = [
     { name = "Walle-Q", module_name = "nonebot_adapter_walleq" },
-    { name = "OneBot V12", module_name = "nonebot.adapters.onebot.v12" }
+    { name = "OneBot V12", module_name = "nonebot.adapters.onebot.v12" },
 ]
-plugins = ["nonebot.plugins.echo"]
+plugins = ["nonebot.plugins.echo", "nonebot_plugin_cocdicer"]
 plugin_dirs = []
 builtin_plugins = []

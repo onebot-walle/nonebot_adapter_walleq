@@ -7,11 +7,16 @@ from nonebot.drivers import Driver
 from nonebot import get_driver
 from typing import Any, Optional, Dict, cast, Union, Literal
 from nonebot.utils import logger_wrapper, escape_tag
+from nonebot import require
 import msgpack
 import asyncio
 
 bots: Dict[str, Bot] = {}
 log = logger_wrapper("Walle-Q")
+require("nonebot_plugin_localstore")
+import nonebot_plugin_localstore as store
+
+data_dir = store.get_data_dir("walle_q")
 
 
 async def _call_data(data: bytes):
@@ -67,21 +72,46 @@ class Adapter(V12Adapter):
     @overrides(V12Adapter)
     def __init__(self, driver: Driver, **kwargs: Any) -> None:
         self.driver = driver
-        self.wq_config = Config(**self.config.dict())
+        self._config = Config(**self.config.dict())
+        data_path: str = (
+            self._config.walle_q_data_path
+            if self._config.walle_q_data_path
+            else str(data_dir)
+        )
         self.inner: WalleQ = WalleQ(
-            self.wq_config.walle_q_leveldb, self.wq_config.walle_q_sled
+            self._config.walle_q_leveldb,
+            self._config.walle_q_sled,
+            data_path,
         )
         self.timeout: Optional[float] = driver.config.api_timeout
 
-        async def run(wq: WalleQ, config: Optional[bytes]):
-            await wq.run(config)
+        async def run(wq: WalleQ, data_path: str):
+            await wq.run(data_path, "./log")
 
         @driver.on_startup
         async def _():
-            config: Optional[bytes] = msgpack.dumps(
-                self.wq_config.walle_q, default=msgpack_encoder
-            )
-            asyncio.create_task(run(self.inner, config))
+            asyncio.create_task(run(self.inner, data_path))
+            await asyncio.sleep(0.5)
+            for id, config in self._config.walle_q.items():
+                r = LoginResp.parse_obj(
+                    await self._call_meta_api(
+                        "login",
+                        bot_id=id,
+                        protocol=config.protocol,
+                        password=config.password,
+                    )
+                )
+                if r.qrcode_str:
+                    log("INFO", f"登录 bot: {r.bot_id} 中，扫码登录：")
+                    print(r.qrcode_str)
+                elif r.url:
+                    log("INFO", f"登录 bot: {r.bot_id} 中, need captcha url: {r.url}")
+                    print(f"input ticket:", end="")
+                    ticket = input()
+                    print(ticket)
+                    await self._call_meta_api(
+                        "submit_ticket", bot_id=r.bot_id, ticket=ticket
+                    )
 
     @classmethod
     @overrides(V12Adapter)
@@ -108,6 +138,24 @@ class Adapter(V12Adapter):
         except asyncio.TimeoutError:
             raise TimeoutError(f"Walle-Q call api {api} timeout")
 
+    async def _call_meta_api(self, api: str, **data: Any) -> Any:
+        timeout: float = data.get("_timeout", self.timeout)
+        seq = self._result_store.get_seq()
+        action_data = {
+            "action": api,
+            "params": data,
+            "echo": str(seq),
+        }
+        b: Optional[bytes] = msgpack.packb(action_data, default=msgpack_encoder)
+        if self.inner:
+            self.inner.call_api(b)
+        else:
+            raise ValueError("walle-q not running")
+        try:
+            return self._handle_api_result(await self._result_store.fetch(seq, timeout))
+        except asyncio.TimeoutError:
+            raise TimeoutError(f"Walle-Q call api {api} timeout")
+
 
 from pydantic import BaseModel
 
@@ -121,3 +169,11 @@ class Config(BaseModel):
     walle_q: Dict[str, QQConfig]
     walle_q_leveldb: Optional[bool]
     walle_q_sled: Optional[bool]
+    walle_q_data_path: Optional[str]
+
+
+class LoginResp(BaseModel):
+    bot_id: str
+    url: Optional[str]
+    qrcode: Optional[bytes]
+    qrcode_str: Optional[str]

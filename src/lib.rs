@@ -12,7 +12,6 @@ use pyo3::types::PyBytes;
 use pyo3::{PyAny, PyResult, Python};
 use tokio::sync::broadcast::{channel, Sender as BTx};
 use walle_core::OneBot;
-use walle_q::config::QQConfig;
 use walle_q::database::WQDatabase;
 use walle_q::init;
 use walle_q::multi::MultiAH;
@@ -24,14 +23,14 @@ pub struct WalleQ {
     event_tx: BTx<Vec<u8>>,
 }
 
-
 #[pyo3::pymethods]
 impl WalleQ {
     #[new]
-    fn new(level_db: Option<bool>, sled_db: Option<bool>) -> Self {
+    fn new(level_db: Option<bool>, sled_db: Option<bool>, data_path: Option<String>) -> Self {
         let (action_tx, _) = channel(64);
         let (event_tx, _) = channel(64);
-        let mut databse = WQDatabase::default();
+        let data_path = Arc::new(data_path.unwrap_or(walle_q::DATA_PATH.to_owned()));
+        let mut databse = WQDatabase::new(&data_path);
         if let Some(true) = level_db {
             databse = databse.add_level();
         }
@@ -40,7 +39,7 @@ impl WalleQ {
         }
         Self {
             ob: Arc::new(OneBot::new(
-                MultiAH::new(None, 10, Arc::new(databse)),
+                MultiAH::new(None, 10, Arc::new(databse), data_path),
                 PyoHandler {
                     action_tx: action_tx.clone(),
                     event_tx: event_tx.clone(),
@@ -51,14 +50,16 @@ impl WalleQ {
         }
     }
 
-    fn run<'a>(&self, config: Vec<u8>, py: Python<'a>) -> PyResult<&'a PyAny> {
-        let config: std::collections::HashMap<String, QQConfig> =
-            rmp_serde::from_slice(&config).unwrap();
+    fn run<'a>(&self, data_path: String, log_path: String, py: Python<'a>) -> PyResult<&'a PyAny> {
+        // let config: std::collections::HashMap<String, QQConfig> =
+        //     rmp_serde::from_slice(&config).unwrap();
         let ob = self.ob.clone();
         let mut event_rx = self.event_tx.subscribe();
         pyo3_asyncio::tokio::future_into_py(py, async move {
-            init().await;
-            ob.start(config, (), true).await.unwrap(); //todo()
+            init(Some(data_path), Some(log_path)).await;
+            ob.start(std::collections::HashMap::default(), (), true)
+                .await
+                .unwrap(); //todo()
             while let Ok(data) = event_rx.recv().await {
                 let f = Python::with_gil(|py| {
                     pyo3_asyncio::tokio::into_future(
